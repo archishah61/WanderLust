@@ -41,7 +41,7 @@
     document.getElementById('image').addEventListener('input', function() {
       const originalImageInput = document.querySelector('input[name="originalImage"]');
       if (this.value.trim() === '') {
-        this.value = originalImageInput.value; // Revert to original if empty
+        this.value = originalImageInput.value;
       }
     });
   </script>
