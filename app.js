@@ -2,12 +2,13 @@ const express = require('express');
 const app = express();
 const mongoose = require("mongoose");
 const Listing = require("./models/listing.js")
+const Review = require("./models/review.js")
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError.js")
-const {listingSchema} = require("./schema.js");
+const { listingSchema } = require("./schema.js");
 
 
 app.set("view engine", "ejs");
@@ -32,14 +33,14 @@ app.get("/", (req, res) => {
     res.send("I am root")
 })
 
-const validateListing = (req,res,next) =>{
+const validateListing = (req, res, next) => {
     console.log('in validate for put')
-    let {error}=listingSchema.validate(req.body);
-    if(error){
-        let errMsg=error.details.map((el)=>el.message).join(",");
-        throw new ExpressError(400,errMsg);
+    let { error } = listingSchema.validate(req.body);
+    if (error) {
+        let errMsg = error.details.map((el) => el.message).join(",");
+        throw new ExpressError(400, errMsg);
     }
-    else{
+    else {
         next();
     }
 }
@@ -119,7 +120,7 @@ app.put("/listings/:id", validateListing, wrapAsync(async (req, res) => {
 
     // Update the listing in the database
     await Listing.findByIdAndUpdate(id, { ...req.body.listing });
-    
+
     // Redirect to the updated listing page
     res.redirect(`/listings/${id}`);
 }));
@@ -132,6 +133,20 @@ app.delete("/listings/:id", wrapAsync(async (req, res) => {
     console.log(deletedListing);
     res.redirect("/listings");
 }));
+
+
+// Reviews 
+// Post Route
+app.post("/listings/:id/reviews", async (req, res) => {
+    let listing = await Listing.findById(req.params.id);
+    let newReview = new Review(req.body.review);
+
+    listing.reviews.push(newReview);
+    await newReview.save();
+    await listing.save();
+
+    res.redirect(`/listings/${listing._id}`);
+})
 
 
 app.all("*", (req, res, next) => {
